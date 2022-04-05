@@ -1,0 +1,4 @@
+
+(<any>global).main = async () => {
+
+}
