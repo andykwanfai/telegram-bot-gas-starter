@@ -4,6 +4,8 @@ export interface RequestOptions extends GoogleAppsScript.URL_Fetch.URLFetchReque
   params?: object;
 }
 
+export interface HTTPResponse extends GoogleAppsScript.URL_Fetch.HTTPResponse { }
+
 function querystring(obj: object) {
   return Object.entries(obj).map(([key, value]) => {
     return `${key}=${value}`;
@@ -24,8 +26,42 @@ export class HttpClient {
     if (options.params) {
       url = appendQuerystring(url, options.params);
     }
-    logger.info(url);
+    logger.debug(url);
     return UrlFetchApp.fetch(url, options);
+  }
+
+  async fetchWithRetry(i: {
+    url: string;
+    options: RequestOptions;
+    max_retry: number;
+    handleError?: (res: HTTPResponse) => void;
+  }) {
+    const { url, options, max_retry, handleError } = i;
+    let retry = 0;
+    while (true) {
+      const res = await this.fetch(url, { ...options, muteHttpExceptions: true });
+      const status_code = res.getResponseCode();
+
+      if (status_code < 400) {
+        return res;
+      }
+
+      logger.info(`fetch error: ${res.getContentText()}`);
+
+      if (retry >= max_retry) {
+        break;
+      }
+
+      retry++;
+
+      if (handleError) {
+        handleError(res);
+      }
+
+    }
+
+    logger.info(`fetch error after ${max_retry} retry`);
+    throw new Error();
   }
 
   async get(url: string, params?: object, options?: RequestOptions) {
