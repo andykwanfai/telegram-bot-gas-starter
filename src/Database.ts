@@ -19,7 +19,7 @@ export class Database {
   getProperty(key: string) {
     const value = this.database.getProperty(key);
 
-    if (!value) {
+    if (value === null) {
       return value;
     }
 

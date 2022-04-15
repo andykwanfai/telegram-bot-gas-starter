@@ -14,11 +14,11 @@ export class Cache {
     }
   }
 
-  put(key: string, value: string) {
-    this.cache?.put(key, value);
+  put(key: string, value: string, expirationInSeconds: number) {
+    this.cache?.put(key, value, expirationInSeconds);
   }
 
   get(key: string) {
-    this.cache?.get(key);
+    return this.cache?.get(key);
   }
 }

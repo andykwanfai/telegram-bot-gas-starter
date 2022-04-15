@@ -1,6 +1,6 @@
 
 export class Utils {
-  static parseJson(s: string): unknown {
+  static parseJson(s: string): string | object {
     try {
       return JSON.parse(s);
     } catch (error) {

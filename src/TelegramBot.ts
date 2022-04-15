@@ -1,4 +1,4 @@
-import { HttpClient, HTTPResponse, RequestOptions } from "./HttpClient";
+import { HttpClient, HttpResponse, HttpFetchOptions } from "./HttpClient";
 import { logger } from "./Logger";
 import { Utils } from "./Utils";
 
@@ -87,7 +87,7 @@ export class TelegramBot {
   }
 
   async sendMessage(input: TelegramBotSendMessageInput) {
-    const options: RequestOptions = {
+    const options: HttpFetchOptions = {
       method: "post",
       payload: input,
     }
@@ -96,7 +96,7 @@ export class TelegramBot {
   }
 
   async sendPhoto(input: TelegramBotSendPhotoInput) {
-    const options: RequestOptions = {
+    const options: HttpFetchOptions = {
       method: "post",
       payload: input,
     }
@@ -105,7 +105,7 @@ export class TelegramBot {
   }
 
   async sendAudio(input: TelegramBotSendAudioInput) {
-    const options: RequestOptions = {
+    const options: HttpFetchOptions = {
       method: "post",
       payload: input,
     }
@@ -114,7 +114,7 @@ export class TelegramBot {
   }
 
   async sendVideo(input: TelegramBotSendVideoInput) {
-    const options: RequestOptions = {
+    const options: HttpFetchOptions = {
       method: "post",
       payload: input,
     }
@@ -123,7 +123,7 @@ export class TelegramBot {
   }
 
   async sendMediaGroup(input: TelegramBotSendMediaGroupInput) {
-    const options: RequestOptions = {
+    const options: HttpFetchOptions = {
       method: "post",
       payload: input,
     }
@@ -135,7 +135,7 @@ export class TelegramBot {
     return `https://api.telegram.org/bot${token}`;
   }
 
-  private static handleError(res: HTTPResponse) {
+  private static handleRetry(res: HttpResponse) {
     const status_code = res.getResponseCode();
     const error = Utils.parseJson(res.getContentText()) as TelegramResponse;
 
@@ -148,12 +148,12 @@ export class TelegramBot {
     Utils.sleep(retry_after);
   }
 
-  private async fetch(url: string, options: RequestOptions) {
-    return await this.httpClient.fetchWithRetry({
+  private async fetch(url: string, options: HttpFetchOptions) {
+    return await HttpClient.fetchWithRetry({
       url: url,
       options: options,
       max_retry: this.max_retry,
-      handleError: TelegramBot.handleError,
+      handleRetry: TelegramBot.handleRetry,
     });
   }
 }

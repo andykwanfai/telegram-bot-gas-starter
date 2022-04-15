@@ -1,10 +1,10 @@
 import { logger } from './Logger';
 
-export interface RequestOptions extends GoogleAppsScript.URL_Fetch.URLFetchRequestOptions {
+export interface HttpFetchOptions extends GoogleAppsScript.URL_Fetch.URLFetchRequestOptions {
   params?: object;
 }
 
-export interface HTTPResponse extends GoogleAppsScript.URL_Fetch.HTTPResponse { }
+export interface HttpResponse extends GoogleAppsScript.URL_Fetch.HTTPResponse { }
 
 function querystring(obj: object) {
   return Object.entries(obj).map(([key, value]) => {
@@ -22,7 +22,7 @@ function appendQuerystring(url: string, obj: object) {
 }
 
 export class HttpClient {
-  async fetch(url: string, options: RequestOptions) {
+  static async fetch(url: string, options: HttpFetchOptions) {
     if (options.params) {
       url = appendQuerystring(url, options.params);
     }
@@ -30,13 +30,13 @@ export class HttpClient {
     return UrlFetchApp.fetch(url, options);
   }
 
-  async fetchWithRetry(i: {
+  static async fetchWithRetry(i: {
     url: string;
-    options: RequestOptions;
+    options: HttpFetchOptions;
     max_retry: number;
-    handleError?: (res: HTTPResponse) => void;
+    handleRetry?: (res: HttpResponse) => void;
   }) {
-    const { url, options, max_retry, handleError } = i;
+    const { url, options, max_retry, handleRetry: handleRetry } = i;
     let retry = 0;
     while (true) {
       const res = await this.fetch(url, { ...options, muteHttpExceptions: true });
@@ -54,8 +54,8 @@ export class HttpClient {
 
       retry++;
 
-      if (handleError) {
-        handleError(res);
+      if (handleRetry) {
+        handleRetry(res);
       }
 
     }
@@ -64,23 +64,23 @@ export class HttpClient {
     throw new Error();
   }
 
-  async get(url: string, params?: object, options?: RequestOptions) {
+  static async get(url: string, params?: object, options?: HttpFetchOptions) {
     return await this.fetch(url, { ...options, params: params, method: 'get' });
   }
 
-  async post(url: string, body?: object, options?: RequestOptions) {
+  static async post(url: string, body?: object, options?: HttpFetchOptions) {
     return await this.fetch(url, { ...options, payload: body, method: 'post' });
   }
 
-  async put(url: string, body?: object, options?: RequestOptions) {
+  static async put(url: string, body?: object, options?: HttpFetchOptions) {
     return await this.fetch(url, { ...options, payload: body, method: 'put' });
   }
 
-  async patch(url: string, body?: object, options?: RequestOptions) {
+  static async patch(url: string, body?: object, options?: HttpFetchOptions) {
     return await this.fetch(url, { ...options, payload: body, method: 'patch' });
   }
 
-  async delete(url: string, options?: RequestOptions) {
+  static async delete(url: string, options?: HttpFetchOptions) {
     return await this.fetch(url, { ...options, method: 'delete' });
   }
 }
