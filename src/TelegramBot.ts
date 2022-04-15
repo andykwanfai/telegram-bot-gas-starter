@@ -1,9 +1,10 @@
 import { HttpClient, HttpResponse, HttpFetchOptions } from "./HttpClient";
 import { logger } from "./Logger";
+import { ITelegramRecipient } from "./tg_recipients";
 import { Utils } from "./Utils";
 
 interface TelegramBotSendInput {
-  chat_id: number | string;
+  chat_id?: number | string;
 
   parse_mode?: string;
 
@@ -14,7 +15,7 @@ interface TelegramBotSendInput {
   reply_markup?: any;
 }
 
-interface TelegramBotSendFileInput extends TelegramBotSendInput {
+export interface TelegramBotSendFileInput extends TelegramBotSendInput {
   caption?: string;
   caption_entities?: any[];
 }
@@ -46,7 +47,7 @@ interface TelegramBotSendVideoInput extends TelegramBotSendFileInput {
   supports_streaming?: boolean;
 }
 
-interface TelegramBotInputMedia {
+export interface TelegramBotInputMedia {
   type: 'audio' | 'photo' | 'video';
   media: string;
   caption?: string;
@@ -77,61 +78,82 @@ interface TelegramResponse {
 }
 
 export class TelegramBot {
-  private httpClient;
-  private api;
   private max_retry;
-  constructor(i: { token: string, max_retry?: number }) {
-    this.httpClient = new HttpClient();
-    this.api = TelegramBot.getApi(i.token);
+  constructor(i: { max_retry?: number }) {
     this.max_retry = i.max_retry ?? 0;
   }
 
-  async sendMessage(input: TelegramBotSendMessageInput) {
+  async sendMessage(recipient: ITelegramRecipient, input: TelegramBotSendMessageInput) {
+    input = {
+      parse_mode: 'HTML',
+      chat_id: recipient.chat_id,
+      ...input
+    };
     const options: HttpFetchOptions = {
       method: "post",
       payload: input,
     }
-    const res = await this.fetch(`${this.api}/sendMessage`, options);
+    const res = await this.fetch(recipient, `sendMessage`, options);
     return res;
   }
 
-  async sendPhoto(input: TelegramBotSendPhotoInput) {
+  async sendPhoto(recipient: ITelegramRecipient, input: TelegramBotSendPhotoInput) {
+    input = {
+      parse_mode: 'HTML',
+      chat_id: recipient.chat_id,
+      ...input
+    };
     const options: HttpFetchOptions = {
       method: "post",
       payload: input,
     }
-    const res = await this.fetch(`${this.api}/sendPhoto`, options);
+    const res = await this.fetch(recipient, `sendPhoto`, options);
     return res;
   }
 
-  async sendAudio(input: TelegramBotSendAudioInput) {
+  async sendAudio(recipient: ITelegramRecipient, input: TelegramBotSendAudioInput) {
+    input = {
+      parse_mode: 'HTML',
+      chat_id: recipient.chat_id,
+      ...input
+    };
     const options: HttpFetchOptions = {
       method: "post",
       payload: input,
     }
-    const res = await this.fetch(`${this.api}/sendAudio`, options);
+    const res = await this.fetch(recipient, `sendAudio`, options);
     return res;
   }
 
-  async sendVideo(input: TelegramBotSendVideoInput) {
+  async sendVideo(recipient: ITelegramRecipient, input: TelegramBotSendVideoInput) {
+    input = {
+      parse_mode: 'HTML',
+      chat_id: recipient.chat_id,
+      ...input
+    };
     const options: HttpFetchOptions = {
       method: "post",
       payload: input,
     }
-    const res = await this.fetch(`${this.api}/sendVideo`, options);
+    const res = await this.fetch(recipient, `sendVideo`, options);
     return res;
   }
 
-  async sendMediaGroup(input: TelegramBotSendMediaGroupInput) {
+  async sendMediaGroup(recipient: ITelegramRecipient, input: TelegramBotSendMediaGroupInput) {
+    input = {
+      parse_mode: 'HTML',
+      chat_id: recipient.chat_id,
+      ...input
+    };
     const options: HttpFetchOptions = {
       method: "post",
       payload: input,
     }
-    const res = await this.fetch(`${this.api}/sendMediaGroup`, options);
+    const res = await this.fetch(recipient, `sendMediaGroup`, options);
     return res;
   }
 
-  private static getApi(token: string) {
+  private getApi(token: string) {
     return `https://api.telegram.org/bot${token}`;
   }
 
@@ -148,12 +170,14 @@ export class TelegramBot {
     Utils.sleep(retry_after);
   }
 
-  private async fetch(url: string, options: HttpFetchOptions) {
-    return await HttpClient.fetchWithRetry({
-      url: url,
+  private async fetch(recipient: ITelegramRecipient, endpoint: string, options: HttpFetchOptions,) {
+    const res = await HttpClient.fetchWithRetry({
+      url: `${this.getApi(recipient.bot_token)}/${endpoint}`,
       options: options,
       max_retry: this.max_retry,
       handleRetry: TelegramBot.handleRetry,
     });
+
+    return Utils.parseJson(res.getContentText()) as TelegramResponse;
   }
 }

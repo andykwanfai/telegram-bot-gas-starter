@@ -1,6 +1,6 @@
 import { BOT_TOKENS } from "./bot_tokens";
 
-interface ITelegramRecipient {
+export interface ITelegramRecipient {
   bot_token: string;
   chat_id: string;
 }

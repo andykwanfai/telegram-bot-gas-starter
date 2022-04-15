@@ -1,10 +1,10 @@
 
 export class Utils {
-  static parseJson(s: string): string | object {
+  static parseJson(s: string): null | object {
     try {
       return JSON.parse(s);
     } catch (error) {
-      return s;
+      return null;
     }
   }
 
