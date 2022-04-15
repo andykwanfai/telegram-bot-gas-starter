@@ -1,3 +1,4 @@
+import { DEFAULT_RETRY_SLEEP_SEC } from "./constants";
 import { HttpClient, HttpResponse, HttpFetchOptions } from "./HttpClient";
 import { logger } from "./Logger";
 import { ITelegramRecipient } from "./tg_recipients";
@@ -161,7 +162,7 @@ export class TelegramBot {
     const status_code = res.getResponseCode();
     const error = Utils.parseJson(res.getContentText()) as TelegramResponse;
 
-    let retry_after = 5;
+    let retry_after = DEFAULT_RETRY_SLEEP_SEC;
     if (status_code === 429) {
       retry_after = error.parameters?.retry_after!;
     }
