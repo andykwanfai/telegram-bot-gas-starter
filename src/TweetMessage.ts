@@ -3,8 +3,11 @@ import { logger } from "./Logger";
 import { TelegramBot, TelegramBotInputMedia, TelegramBotSendFileInput } from "./TelegramBot";
 import { ITelegramRecipient, TG_RECIPIENTS } from "./tg_recipients";
 
-interface TweetMessageMedia extends TelegramBotInputMedia {
+interface TweetMessageMedia {
   type: TweetMediaType;
+  media: string;
+  caption?: string;
+  parse_mode?: string;
 }
 
 export interface ITweetMessage {
@@ -15,6 +18,7 @@ export interface ITweetMessage {
   hashtags?: string[];
   media?: TweetMessageMedia[];
   tg_recipients: ITelegramRecipient[];
+  created_at: Date;
 }
 
 export interface TweetMessage extends ITweetMessage { }
@@ -24,7 +28,7 @@ export class TweetMessage {
     Object.assign(this, i);
   }
 
-  static fromUserTweets(twitter_user_id: string, tweet: IUserTweets): TweetMessage[] {
+  public static fromUserTweets(twitter_user_id: string, tweet: IUserTweets, last_published_at: Date): TweetMessage[] {
     const entries: ITweetEntry[] = [];
 
     //normal tweets
@@ -46,10 +50,15 @@ export class TweetMessage {
       if (entry.entryId.includes("tweet-") === false) {
         continue;
       }
+      // skip created_at <= last_published_at
+      const created_at = new Date(entry.content.itemContent.tweet_results.result.legacy.created_at);
+      if (created_at <= last_published_at) {
+        continue;
+      }
 
       const hashtags = entry.content.itemContent.tweet_results.result.legacy.entities.hashtags.map((e) => e.text);
 
-      // get recipients
+      // get recipients by hashtags
       const tg_recipients: ITelegramRecipient[] = [];
       hashtags.forEach((hashtag) => {
         const recipient = TG_RECIPIENTS[hashtag];
@@ -66,6 +75,7 @@ export class TweetMessage {
         hashtags: hashtags,
         media: TweetMessage.getMedia(entry.content.itemContent.tweet_results.result.legacy.extended_entities?.media),
         tg_recipients: tg_recipients,
+        created_at: created_at,
       }
 
       const message = new TweetMessage(input);
@@ -75,70 +85,99 @@ export class TweetMessage {
     return messages;
   }
 
-  async sendToTelegram() {
-    const funcName = 'sendToTelegram';
+  public async sendToRecipients() {
+    const funcName = 'sendToRecipients';
 
     const tg = new TelegramBot({ max_retry: 3 });
 
-    const outbound_text = `
+    const outbound_text = this.getOutboundText();
+
+    let success = true;
+    for (const recipient of this.tg_recipients) {
+      const res = await this.sendToTelegram(tg, recipient, outbound_text);
+
+      logger.debug(res);
+      // mark success as false if one failed
+      if (res.ok === false) {
+        success = false;
+      }
+
+      logger.info(`${funcName} success: ${success}`);
+    }
+
+    return success;
+  }
+
+  private async sendToTelegram(tg: TelegramBot, recipient: ITelegramRecipient, outbound_text: string) {
+    const funcName = 'sendToTelegram';
+    logger.info(`${funcName}: tweet_id ${this.tweet_id}`);
+
+    // text only
+    if (this.media === undefined) {
+      return await tg.sendMessage(recipient, {
+        text: outbound_text,
+      });
+    }
+
+    //media group
+    if (this.media.length > 1) {
+      // change gif to video type
+      const media: TelegramBotInputMedia[] = this.media.map((e) => {
+        return {
+          ...e,
+          type: e.type === TweetMediaType.GIF ? TweetMediaType.VIDEO : e.type,
+        };
+      });
+
+      media[0].caption = outbound_text;
+      return await tg.sendMediaGroup(recipient, {
+        media: media,
+      });
+    }
+
+    //single media
+    const medium = this.media[0];
+    const input: TelegramBotSendFileInput = {
+      caption: outbound_text,
+    };
+
+    switch (medium.type) {
+      case TweetMediaType.PHOTO:
+        return await tg.sendPhoto(recipient, {
+          photo: medium.media,
+          ...input,
+        });
+        break;
+
+      case TweetMediaType.VIDEO:
+      case TweetMediaType.GIF:
+        return await tg.sendVideo(recipient, {
+          video: medium.media,
+          ...input,
+        });
+        break;
+    }
+  }
+
+  public static sort(messages: TweetMessage[]) {
+    messages.sort((a, b) => {
+      if (a.created_at < b.created_at) return -1;
+      if (a.created_at > b.created_at) return 1;
+      return 0;
+    });
+  }
+
+  private getOutboundText() {
+    return `${this.formatCreatedAt()}
 https://twitter.com/${this.twitter_name}/status/${this.tweet_id}
         
 ${this.full_text}
 
 #nogitwitter`;
+  }
 
-    let success = true;
-    for (const recipient of this.tg_recipients) {
-      logger.info(`${funcName}: send tweet_id ${this.tweet_id}`);
-
-      let res;
-      // text only
-      if (this.media === undefined) {
-        res = await tg.sendMessage(recipient, {
-          text: outbound_text,
-        });
-      }
-
-      //media group
-      else if (this.media.length > 1) {
-        this.media[0].caption = outbound_text;
-        res = await tg.sendMediaGroup(recipient, {
-          media: this.media,
-        });
-      }
-
-      //single media
-      else {
-        const media = this.media[0];
-        const input: TelegramBotSendFileInput = {
-          caption: outbound_text,
-        };
-
-        switch (media.type) {
-          case TweetMediaType.PHOTO:
-            res = await tg.sendPhoto(recipient, {
-              photo: media.media,
-              ...input,
-            });
-            break;
-
-          case TweetMediaType.VIDEO:
-            res = await tg.sendVideo(recipient, {
-              video: media.media,
-              ...input,
-            });
-            break;
-        }
-      }
-
-      if (res.ok === false) {
-        success = false;
-      }
-
-      logger.info(`${funcName} success: ${success}`)
-    }
-
-    return success;
+  private formatCreatedAt() {
+    return Utilities.formatDate(this.created_at, 'Asia/Tokyo', "yyyy-MM-dd HH:mm:ss z");
   }
 
   private static getMedia(media?: ITweetMedia[]) {
@@ -151,13 +190,13 @@ ${this.full_text}
           break;
         }
 
+        case TweetMediaType.GIF:
         case TweetMediaType.VIDEO: {
-          let max = 0;
+          let max = -1;
           let result = "";
-
           // find the largest bitrate
           for (let v of e.video_info?.variants!) {
-            if (v.bitrate && v.bitrate > max) {
+            if (v.bitrate !== undefined && v.bitrate > max) {
               result = v.url;
               max = v.bitrate;
             }

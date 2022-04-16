@@ -1,5 +1,5 @@
 {
-  "name": "gas-telegram-bot-starter",
+  "name": "nogi-twitter-tg-bot",
   "version": "0.0.1",
   "scripts": {
     "build": "webpack",
