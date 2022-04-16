@@ -25,7 +25,7 @@ export class Database {
 
     const json = Utils.parseJson(value);
 
-    return json;
+    return json ?? value;
   };
 
   setProperty(key: string, value: string) {
