@@ -1,6 +1,7 @@
 export enum TweetMediaType {
   PHOTO = 'photo',
   VIDEO = 'video',
+  GIF = 'animated_gif',
 }
 
 export interface ITweetMedia {
@@ -92,6 +93,9 @@ export interface ITweetMedia {
     }>
   }
   additional_media_info?: {
+    title: string
+    description: string
+    embeddable: boolean
     monetizable: boolean
   }
   mediaStats?: {
@@ -99,7 +103,7 @@ export interface ITweetMedia {
   }
   video_info?: {
     aspect_ratio: Array<number>
-    duration_millis: number
+    duration_millis?: number
     variants: Array<{
       bitrate?: number
       content_type: string
