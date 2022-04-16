@@ -70,7 +70,7 @@ interface TelegramResponseResult {
   audio?: { file_id: string };
 }
 
-interface TelegramResponse {
+export interface TelegramResponse {
   ok: boolean;
   description?: string;
   result?: TelegramResponseResult | TelegramResponseResult[];
@@ -141,9 +141,12 @@ export class TelegramBot {
   }
 
   async sendMediaGroup(recipient: ITelegramRecipient, input: TelegramBotSendMediaGroupInput) {
+    // set default parse_mode
+    input.media[0] = { parse_mode: 'HTML', ...input.media[0] };
+    // tg api need to stringify media
+    input.media = JSON.stringify(input.media) as any;
     input = {
-      parse_mode: 'HTML',
-      chat_id: recipient.chat_id,
+      chat_id: recipient.chat_id, //set default chat_id
       ...input
     };
     const options: HttpFetchOptions = {
