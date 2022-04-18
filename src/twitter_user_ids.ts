@@ -42,7 +42,7 @@ export const TWITTER_USER_IDS = [
   itsunogi46,
   // nhk_radirer,
   NOGI46ann,
-  nogifra,
+  // nogifra,
   sakamichinikkan,
   nogidoyou22,
   tbsnogiotameshi,

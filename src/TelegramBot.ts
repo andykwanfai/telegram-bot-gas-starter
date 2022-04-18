@@ -161,12 +161,12 @@ export class TelegramBot {
     return `https://api.telegram.org/bot${token}`;
   }
 
-  private static handleRetry(res: HttpResponse) {
-    const status_code = res.getResponseCode();
-    const error = Utils.parseJson(res.getContentText()) as TelegramResponse;
+  private static handleRetry(res?: HttpResponse) {
+    const status_code = res?.getResponseCode();
 
     let retry_after = DEFAULT_RETRY_SLEEP_SEC;
     if (status_code === 429) {
+      const error = Utils.parseJson(res!.getContentText()) as TelegramResponse;
       retry_after = error.parameters?.retry_after!;
     }
 

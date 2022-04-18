@@ -71,7 +71,7 @@ export class Twitter {
     this.database.setProperty(this.user_id, date.toString());
   }
 
-  private static handleRetry(res: HttpResponse) {
+  private static handleRetry(res?: HttpResponse) {
     // const status_code = res.getResponseCode();
     // const error = Utils.parseJson(res.getContentText()) as TwitterErrorResponse;
 

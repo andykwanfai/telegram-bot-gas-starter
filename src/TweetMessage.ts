@@ -1,3 +1,4 @@
+import { DEFAULT_MAX_RETRY } from "./constants";
 import { ITweetEntry, ITweetMedia, IUserTweets, TweetMediaType } from "./IUserTweet";
 import { logger } from "./Logger";
 import { TelegramBot, TelegramBotInputMedia, TelegramBotSendFileInput } from "./TelegramBot";
@@ -88,7 +89,7 @@ export class TweetMessage {
   public async sendToRecipients() {
     const funcName = 'sendToRecipients';
 
-    const tg = new TelegramBot({ max_retry: 3 });
+    const tg = new TelegramBot({ max_retry: DEFAULT_MAX_RETRY });
 
     const outbound_text = this.getOutboundText();
 
