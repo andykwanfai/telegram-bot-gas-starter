@@ -71,7 +71,7 @@ export class TweetMessage {
       const input: ITweetMessage = {
         twitter_user_id: twitter_user_id,
         twitter_name: entry.content.itemContent.tweet_results.result.core.user_results.result.legacy.screen_name,
-        tweet_id: entry.sortIndex,
+        tweet_id: entry.content.itemContent.tweet_results.result.rest_id,
         full_text: entry.content.itemContent.tweet_results.result.legacy.full_text,
         hashtags: hashtags,
         media: TweetMessage.getMedia(entry.content.itemContent.tweet_results.result.legacy.extended_entities?.media),
