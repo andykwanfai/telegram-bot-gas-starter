@@ -34,19 +34,27 @@ export class HttpClient {
     url: string;
     options: HttpFetchOptions;
     max_retry: number;
-    handleRetry?: (res: HttpResponse) => void;
-  }) {
+    handleRetry?: (res?: HttpResponse) => void;
+  }): Promise<HttpResponse> {
     const { url, options, max_retry, handleRetry: handleRetry } = i;
     let retry = 0;
     while (true) {
-      const res = await this.fetch(url, { ...options, muteHttpExceptions: true });
-      const status_code = res.getResponseCode();
-
-      if (status_code < 400) {
-        return res;
+      let res;
+      let error_message;
+      try {
+        res = await this.fetch(url, { ...options, muteHttpExceptions: true });
+      } catch (error: any) {
+        // catch Address unavailable error
+        error_message = error.message as string;
       }
 
-      logger.info(`fetch error: ${res.getContentText()}`);
+      const status_code = res?.getResponseCode() ?? 9999;
+
+      if (status_code < 400) {
+        return res as HttpResponse;
+      }
+
+      logger.info(`fetch error: ${res?.getContentText() ?? error_message}`);
 
       if (retry >= max_retry) {
         break;
