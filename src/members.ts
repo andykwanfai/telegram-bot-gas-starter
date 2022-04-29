@@ -38,4 +38,14 @@ export enum NogiMember {
   Yakubo_Mio = "矢久保美緒",
   Yumiki_Nao = "弓木奈於",
 
+  Ioki_Mao = "五百城茉央",
+  Ikeda_Teresa = "池田瑛紗",
+  Ichinose_Miku = "一ノ瀬美空",
+  Inoue_Nagi = "井上和",
+  Ogawa_Aya = "小川彩",
+  Okuda_Iroha = "奥田いろは",
+  Kawasaki_Sakura = "川﨑桜",
+  Sugawara_Satsuki = "菅原咲月",
+  Tomisato_Nao = "冨里奈央",
+  Nakanishi_Aruno = "中西アルノ",
 }
