@@ -178,7 +178,7 @@ export class TelegramBot {
     const res = await HttpClient.fetchWithRetry({
       url: `${this.getApi(recipient.bot_token)}/${endpoint}`,
       options: options,
-      max_retry: this.max_retry,
+      retry: this.max_retry,
       handleRetry: TelegramBot.handleRetry,
     });
 

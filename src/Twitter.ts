@@ -85,7 +85,7 @@ export class Twitter {
     return await HttpClient.fetchWithRetry({
       url: url,
       options: options,
-      max_retry: max_retry ?? 0,
+      retry: max_retry ?? 0,
       handleRetry: Twitter.handleRetry,
     });
   }
