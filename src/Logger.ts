@@ -1,4 +1,4 @@
-import { IS_DEBUG_MODE } from "./constants";
+import { IS_LOGGER_DEBUG_MODE } from "./constants";
 
 export class Log {
   constructor(i?: { debug: boolean }) {
@@ -16,4 +16,4 @@ export class Log {
 }
 
 
-export const logger = new Log({ debug: IS_DEBUG_MODE });
+export const logger = new Log({ debug: IS_LOGGER_DEBUG_MODE });

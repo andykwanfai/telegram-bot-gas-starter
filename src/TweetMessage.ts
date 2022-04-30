@@ -30,6 +30,7 @@ export class TweetMessage {
   }
 
   public static fromUserTweets(twitter_user_id: string, tweet: IUserTweets, last_published_at: Date): TweetMessage[] {
+    const funcName = 'fromUserTweets';
     const entries: ITweetEntry[] = [];
 
     //normal tweets
@@ -58,6 +59,7 @@ export class TweetMessage {
       }
 
       const hashtags = entry.content.itemContent.tweet_results.result.legacy.entities.hashtags.map((e) => e.text);
+      logger.debug(`[${funcName}] hashtags: ${JSON.stringify(hashtags)}`);
 
       // get recipients by hashtags
       const tg_recipients: ITelegramRecipient[] = [];
@@ -93,8 +95,13 @@ export class TweetMessage {
 
     const outbound_text = this.getOutboundText();
 
+    // remove duplicate recipients by chat id since one tweet may have multi hashtags with same recipients
+    const recipients = [...new Map(this.tg_recipients.map(v => [v.chat_id, v])).values()];
+
+    logger.info(`[${funcName}] ${this.twitter_name} send ${this.tweet_id} to ${recipients.length} recipients`);
+
     let success = true;
-    for (const recipient of this.tg_recipients) {
+    for (const recipient of recipients) {
       const res = await this.sendToTelegram(tg, recipient, outbound_text);
 
       logger.debug(res);
