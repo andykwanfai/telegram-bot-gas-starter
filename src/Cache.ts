@@ -19,6 +19,6 @@ export class Cache {
   }
 
   get(key: string) {
-    return this.cache?.get(key);
+    return this.cache?.get(key) ?? null;
   }
 }

@@ -4,6 +4,8 @@ export interface HttpFetchOptions extends GoogleAppsScript.URL_Fetch.URLFetchReq
   params?: object;
 }
 
+export interface HttpBlob extends GoogleAppsScript.Base.Blob { }
+
 export interface HttpResponse extends GoogleAppsScript.URL_Fetch.HTTPResponse { }
 
 function querystring(obj: object) {
@@ -27,6 +29,7 @@ export class HttpClient {
       url = appendQuerystring(url, options.params);
     }
     logger.debug(url);
+    logger.debug(options);
     return UrlFetchApp.fetch(url, options);
   }
 

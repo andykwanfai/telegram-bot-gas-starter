@@ -11,4 +11,8 @@ export class Utils {
   static sleep(sec: number) {
     Utilities.sleep(sec * 1000);
   }
+
+  static now() {
+    return new Date().getTime();
+  }
 }

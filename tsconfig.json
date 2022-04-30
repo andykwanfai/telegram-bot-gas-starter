@@ -6,9 +6,13 @@
       "@types/jest",
     ],
     "module": "ES6",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
     "strict": true,
     "target": "ES6",
     "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
     "outDir": "dist",
     "allowJs": true,
     "lib": [

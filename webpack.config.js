@@ -14,6 +14,9 @@ module.exports = {
   node: {
     global: true
   },
+  // optimization: {
+  //   minimize: false,
+  // },
   module: {
     rules: [
       {

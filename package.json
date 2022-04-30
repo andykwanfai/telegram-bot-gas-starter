@@ -1,6 +1,6 @@
 {
   "name": "gas-telegram-bot-starter",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "scripts": {
     "build": "webpack",
     "deploy": "yarn build && clasp push",

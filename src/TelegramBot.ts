@@ -1,8 +1,11 @@
 import { DEFAULT_RETRY_SLEEP_SEC } from "./constants";
-import { HttpClient, HttpResponse, HttpFetchOptions } from "./HttpClient";
+import { HttpClient, HttpResponse, HttpFetchOptions, HttpBlob } from "./HttpClient";
 import { logger } from "./Logger";
 import { ITelegramRecipient } from "./tg_recipients";
 import { Utils } from "./Utils";
+
+export const TG_MAX_CAPTION_LEN = 1024; // character limit for caption of photo, video or media group is 1024 characters;
+export const TG_MAX_MESSAGE_LEN = 4096; // character limit for text message is 4096 characters;
 
 interface TelegramBotSendInput {
   chat_id?: number | string;
@@ -28,11 +31,11 @@ interface TelegramBotSendMessageInput extends TelegramBotSendInput {
 }
 
 interface TelegramBotSendPhotoInput extends TelegramBotSendFileInput {
-  photo: string;
+  photo: string | HttpBlob;
 }
 
 interface TelegramBotSendAudioInput extends TelegramBotSendFileInput {
-  audio: string;
+  audio: string | HttpBlob;
   duration?: number;
   performer?: string;
   title?: string;
@@ -40,7 +43,7 @@ interface TelegramBotSendAudioInput extends TelegramBotSendFileInput {
 }
 
 interface TelegramBotSendVideoInput extends TelegramBotSendFileInput {
-  video: string;
+  video: string | HttpBlob;
   duration?: number;
   width?: number;
   height?: number;
@@ -50,7 +53,7 @@ interface TelegramBotSendVideoInput extends TelegramBotSendFileInput {
 
 export interface TelegramBotInputMedia {
   type: 'audio' | 'photo' | 'video';
-  media: string;
+  media: string | HttpBlob;
   caption?: string;
   parse_mode?: string;
 }
@@ -64,10 +67,22 @@ interface TelegramBotSendMediaGroupInput extends TelegramBotSendInput {
   supports_streaming?: boolean;
 }
 
-interface TelegramResponseResult {
+export interface TelegramResponseResult {
+  message_id: number;
   phone?: { file_id: string }[];
   video?: { file_id: string };
   audio?: { file_id: string };
+  media_group_id?: string;
+  caption?: string;
+  text?: string;
+  date: number;
+}
+
+export class TelegramFileSizeExceedLimitError extends Error {
+  super(message?: string) {
+    this.name = "TelegramFileSizeExceedLimitError";
+    this.message = message ?? "File size exceeds limit";
+  }
 }
 
 export interface TelegramResponse {
@@ -142,7 +157,7 @@ export class TelegramBot {
 
   async sendMediaGroup(recipient: ITelegramRecipient, input: TelegramBotSendMediaGroupInput) {
     // set default parse_mode
-    input.media[0] = { parse_mode: 'HTML', ...input.media[0] };
+    input.media[0] = { parse_mode: 'HTML', ...input.media[0]! };
     // tg api need to stringify media
     input.media = JSON.stringify(input.media) as any;
     input = {
@@ -165,9 +180,15 @@ export class TelegramBot {
     const status_code = res?.getResponseCode();
 
     let retry_after = DEFAULT_RETRY_SLEEP_SEC;
-    if (status_code === 429) {
+
+    if (status_code !== undefined) {
       const error = Utils.parseJson(res!.getContentText()) as TelegramResponse;
-      retry_after = error.parameters?.retry_after!;
+      if (status_code === 429) {
+        retry_after = error.parameters?.retry_after!;
+      } else if (status_code === 400 &&
+        error.description === "Bad Request: failed to get HTTP URL content") {
+        throw new TelegramFileSizeExceedLimitError();
+      }
     }
 
     logger.info(`Sleep for ${retry_after} sec`);
