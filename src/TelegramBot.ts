@@ -58,19 +58,21 @@ export interface TelegramBotInputMedia {
   parse_mode?: string;
 }
 
-interface TelegramBotSendMediaGroupInput extends TelegramBotSendInput {
+export interface TelegramBotSendMediaGroupInput extends TelegramBotSendInput {
   media: TelegramBotInputMedia[];
   duration?: number;
   width?: number;
   height?: number;
   thumb?: string;
   supports_streaming?: boolean;
+  [index: number]: HttpBlob;
 }
 
 export interface TelegramResponseResult {
   message_id: number;
-  phone?: { file_id: string }[];
+  photo?: { file_id: string }[];
   video?: { file_id: string };
+  document?: { file_id: string };
   audio?: { file_id: string };
   media_group_id?: string;
   caption?: string;
@@ -78,10 +80,10 @@ export interface TelegramResponseResult {
   date: number;
 }
 
-export class TelegramFileSizeExceedLimitError extends Error {
+export class TelegramSendMediaByUrlError extends Error {
   super(message?: string) {
-    this.name = "TelegramFileSizeExceedLimitError";
-    this.message = message ?? "File size exceeds limit";
+    this.name = "TelegramSendMediaByUrlError";
+    this.message = message ?? "send media by url error";
   }
 }
 
@@ -172,6 +174,22 @@ export class TelegramBot {
     return res;
   }
 
+  public static getFileId(result: TelegramResponseResult) {
+    if (result.photo) {
+      const photos = result.photo;
+      return photos[photos.length - 1]!.file_id;
+    }
+    if (result.video) {
+      return result.video.file_id;
+    }
+    if (result.audio) {
+      return result.audio.file_id;
+    }
+    if (result.document) {
+      return result.document.file_id;
+    }
+  }
+
   private getApi(token: string) {
     return `https://api.telegram.org/bot${token}`;
   }
@@ -186,8 +204,11 @@ export class TelegramBot {
       if (status_code === 429) {
         retry_after = error.parameters?.retry_after!;
       } else if (status_code === 400 &&
-        error.description === "Bad Request: failed to get HTTP URL content") {
-        throw new TelegramFileSizeExceedLimitError();
+        (error.description === "Bad Request: failed to get HTTP URL content" ||
+          error.description === "Bad Request: wrong file identifier/HTTP URL specified" ||
+          error.description === "Bad Request: group send failed")
+      ) {
+        throw new TelegramSendMediaByUrlError();
       }
     }
 
@@ -197,7 +218,7 @@ export class TelegramBot {
 
   private async fetch(recipient: ITelegramRecipient, endpoint: string, options: HttpFetchOptions,) {
     const res = await HttpClient.fetchWithRetry({
-      url: `${this.getApi(recipient.bot_token)}/${endpoint}`,
+      url: `${this.getApi(recipient.bot.token)}/${endpoint}`,
       options: options,
       retry: this.max_retry,
       handleRetry: TelegramBot.handleRetry,

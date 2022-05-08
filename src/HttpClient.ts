@@ -60,8 +60,9 @@ export class HttpClient {
     logger.info(`fetch error: ${res?.getContentText() ?? error_message}`);
 
     if (retry <= 0) {
-      logger.info(`fetch error after retry`);
-      throw new Error();
+      const msg = `fetch error after retry`;
+      logger.info(msg);
+      throw new Error(msg);
     }
 
     retry--;

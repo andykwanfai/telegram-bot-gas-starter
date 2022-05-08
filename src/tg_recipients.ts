@@ -1,10 +1,10 @@
-import { BOT_TOKENS } from "./bot_tokens";
+import { ITelegramBot, TG_BOTS } from "./tg_bots";
 
 export interface ITelegramRecipient {
-  bot_token: string;
+  bot: ITelegramBot;
   chat_id: string;
   pin_all_message?: boolean;
-  is_default?: boolean;
+  // is_default?: boolean;
 }
 
 export interface RecipientMap {
@@ -18,15 +18,14 @@ export const TG_RECIPIENTS: RecipientMap = {
 
   DEFAULT: [
     {
-      bot_token: BOT_TOKENS.DEFAULT,
+      bot: TG_BOTS.DEFAULT,
       chat_id: "",
-      is_default: true,
     }
   ],
 
   ERROR: [
     {
-      bot_token: BOT_TOKENS.DEFAULT,
+      bot: TG_BOTS.DEFAULT,
       chat_id: "",
     }
   ],
