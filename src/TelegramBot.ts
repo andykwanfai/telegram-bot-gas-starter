@@ -47,7 +47,7 @@ interface TelegramBotSendVideoInput extends TelegramBotSendFileInput {
   duration?: number;
   width?: number;
   height?: number;
-  thumb?: string;
+  thumb?: string | HttpBlob;
   supports_streaming?: boolean;
 }
 

@@ -1,4 +1,6 @@
+import { DEFAULT_RETRY_SLEEP_SEC } from './constants';
 import { logger } from './Logger';
+import { Utils } from './Utils';
 
 export interface HttpFetchOptions extends GoogleAppsScript.URL_Fetch.URLFetchRequestOptions {
   params?: object;
@@ -62,16 +64,25 @@ export class HttpClient {
     if (retry <= 0) {
       const msg = `fetch error after retry`;
       logger.info(msg);
-      throw new Error(msg);
+      throw new Error(`[fetchWithRetry] ${msg}`);
     }
 
     retry--;
 
     if (handleRetry) {
       handleRetry(res);
+    } else {
+      this.defaultHandleRetry();
     }
 
     return await this.fetchWithRetry({ url, options, retry });
+  }
+
+  private static defaultHandleRetry() {
+    const retry_after = DEFAULT_RETRY_SLEEP_SEC;
+
+    logger.info(`Sleep for ${retry_after} sec`);
+    Utils.sleep(retry_after);
   }
 
   static async get(url: string, params?: object, options?: HttpFetchOptions) {
