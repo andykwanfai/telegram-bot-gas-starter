@@ -68,6 +68,12 @@ export interface TelegramBotSendMediaGroupInput extends TelegramBotSendInput {
   [index: number]: HttpBlob;
 }
 
+export interface TelegramBoPinMessageInput {
+  chat_id?: string;
+  message_id: number;
+  disable_notification?: boolean;
+}
+
 export interface TelegramResponseResult {
   message_id: number;
   photo?: { file_id: string }[];
@@ -171,6 +177,19 @@ export class TelegramBot {
       payload: input,
     }
     const res = await this.fetch(recipient, `sendMediaGroup`, options);
+    return res;
+  }
+
+  async pinChatMessage(recipient: ITelegramRecipient, input: TelegramBoPinMessageInput) {
+    input = {
+      chat_id: recipient.chat_id, //set default chat_id
+      ...input
+    };
+    const options: HttpFetchOptions = {
+      method: "post",
+      payload: input,
+    }
+    const res = await this.fetch(recipient, `pinChatMessage`, options);
     return res;
   }
 

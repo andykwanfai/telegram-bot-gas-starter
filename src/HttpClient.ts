@@ -8,7 +8,19 @@ export interface HttpFetchOptions extends GoogleAppsScript.URL_Fetch.URLFetchReq
 
 export interface HttpBlob extends GoogleAppsScript.Base.Blob { }
 
-export interface HttpResponse extends GoogleAppsScript.URL_Fetch.HTTPResponse { }
+export interface IHttpResponse extends GoogleAppsScript.URL_Fetch.HTTPResponse { }
+export interface HttpResponse extends IHttpResponse { }
+export class HttpResponse {
+  constructor(res: IHttpResponse) {
+    Object.assign(this, res);
+  }
+
+  getSetCookieHeader() {
+    const headers: any = this.getAllHeaders();
+    const set_cookie = headers['Set-Cookie'] ?? headers['set-cookie'];
+    return set_cookie as string[] | undefined;
+  }
+}
 
 function querystring(obj: object) {
   return Object.entries(obj).map(([key, value]) => {
@@ -32,7 +44,8 @@ export class HttpClient {
     }
     logger.debug(url);
     logger.debug(options);
-    return UrlFetchApp.fetch(url, options);
+    const res = UrlFetchApp.fetch(url, options);
+    return new HttpResponse(res);
   }
 
   static async fetchWithRetry(i: {
