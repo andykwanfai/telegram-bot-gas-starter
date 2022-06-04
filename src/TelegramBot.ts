@@ -56,15 +56,15 @@ export interface TelegramBotInputMedia {
   media: string | HttpBlob;
   caption?: string;
   parse_mode?: string;
-}
-
-export interface TelegramBotSendMediaGroupInput extends TelegramBotSendInput {
-  media: TelegramBotInputMedia[];
   duration?: number;
   width?: number;
   height?: number;
   thumb?: string;
   supports_streaming?: boolean;
+}
+
+export interface TelegramBotSendMediaGroupInput extends TelegramBotSendInput {
+  media: TelegramBotInputMedia[];
   [index: number]: HttpBlob;
 }
 
