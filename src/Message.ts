@@ -34,6 +34,8 @@ export interface IMessage {
   id: number | string;
   date: Date;
   text?: string;
+  url?: string;
+  hashtags: string[];
   media?: MessageMedia[];
   app: App;
   tg: TelegramBot;
@@ -338,7 +340,7 @@ export class Message {
   }
 
   protected getFooterHashtags() {
-    return [this.app.app_name];
+    return this.hashtags;
   }
 
   protected getOutboundText(translate: boolean, max_len: number) {
@@ -364,6 +366,11 @@ export class Message {
       this.translate_text = "\n____________________\n\n" + this.translate_text + "\n";
     }
     logger.debug(`[${funcName}]translate_text: ${this.translate_text} `);
+
+    // set url
+    if (this.url) {
+      this.main_text += `\n${this.url}`;
+    }
 
     // set footer hashtags line
     const hashtags = this.getFooterHashtags();
