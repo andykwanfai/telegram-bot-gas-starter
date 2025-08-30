@@ -4,6 +4,7 @@ import { Utils } from "../gas-telegram-bot-api/src/Utils";
 import { Message } from "./Message";
 import { Logger } from "../gas-telegram-bot-api/src/Logger";
 import { FetchSetting } from "./fetch_settings";
+import { TelegramBot } from "../gas-telegram-bot-api/src/TelegramBot";
 
 export interface IPublishRecord {
   last_published_at: string | number,
@@ -25,7 +26,8 @@ export interface IApp {
   default_fetch_blob?: boolean;
   send_raw_media?: boolean;
   metadata: { [key: string]: any };
-  fetch_setting: FetchSetting
+  fetch_setting?: FetchSetting;
+  tg: TelegramBot;
 }
 export interface App extends IApp { }
 export abstract class App {

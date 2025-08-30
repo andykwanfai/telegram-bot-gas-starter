@@ -55,10 +55,10 @@ export class Message {
     }
   };
 
-  private getAllRecipients(recipient_map: RecipientMap) {
+  protected getAllRecipients(recipient_map: RecipientMap) {
     const recipients: ITelegramRecipient[] = [
       ...recipient_map.DEFAULT,
-      ...this.app.fetch_setting.default_recipients ?? [],
+      ...this.app.fetch_setting?.default_recipients ?? [],
     ];
 
     return recipients;
