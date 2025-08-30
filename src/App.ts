@@ -35,8 +35,20 @@ export abstract class App {
 
   protected abstract fetchMessageData(): Promise<any>;
   protected abstract constructhMessages(res: any): Message[];
-  protected abstract filterMessages(messages: Message[]): Message[];
-  protected abstract sortMessages(messages: Message[]): Message[];
+
+  protected filterMessages(messages: Message[]): Message[] {
+    const filterMessages = messages.filter((e) => !this.isMessagePublished(e));
+    return filterMessages;
+  };
+
+  protected sortMessages(messages: Message[]): Message[] {
+    messages.sort((a, b) => {
+      if (a.date < b.date) return -1;
+      if (a.date > b.date) return 1;
+      return 0;
+    });
+    return messages;
+  };
 
   public async getMessages(): Promise<Message[]> {
     const res = await this.fetchMessageData();
