@@ -1,4 +1,4 @@
-import { Utils } from "./Utils";
+import { Utils } from "../gas-telegram-bot-api/src/Utils";
 
 export class Database {
   private database;

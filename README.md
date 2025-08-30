@@ -4,17 +4,25 @@ A start kit with some wrappers of TelegramBot Apis and Google Apps Script in Typ
 **1.** Install dependencies
 
 ```
-yarn
+pnpm install
 ```
 
 **2.** Login to Google
 ```
-yarn clasp login
+pnpm clasp login
 ```
 
 **3.** Add your script id to .clasp.json
 
 **4.** Deploy
 ```
-yarn deploy
+pnpm deploy
 ```
+
+**5.** Use the App Class
+
+Implement a class that extend the App Class.
+
+Call app.getMessages() to get all messages.
+
+Call message.sendToAllRecipients() to send the message.

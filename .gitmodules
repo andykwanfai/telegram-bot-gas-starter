@@ -1,0 +1,3 @@
+[submodule "gas-telegram-bot-api"]
+	path = gas-telegram-bot-api
+	url = https://github.com/andykwanfai/gas-telegram-bot-api.git

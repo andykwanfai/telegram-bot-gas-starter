@@ -1,15 +1,5 @@
 import { BOT_TOKENS } from "./bot_tokens";
-
-export interface ITelegramBot {
-  name: string;
-  token: string;
-  is_default?: boolean;
-}
-
-export interface BotMap {
-  DEFAULT: ITelegramBot,
-  [key: string]: ITelegramBot,
-}
+import { BotMap } from "./ITelegramRecipient";
 
 export const TG_BOTS: BotMap = {
   DEFAULT: {

@@ -2,3 +2,5 @@ node_modules
 bot_tokens.ts
 dist
 coverage
+/.clasp.json
+*-lock.yaml
